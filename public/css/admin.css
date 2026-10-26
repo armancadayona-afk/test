@@ -1,0 +1,140 @@
+.studio-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+.stage-area {
+  display: flex;
+  flex-direction: column;
+  background: #030810;
+  border-right: 1px solid var(--border-color);
+  position: relative;
+}
+
+.broadcast-viewport {
+  flex: 2;
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.broadcast-viewport video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.client-monitor-pane {
+  flex: 1.2;
+  background: var(--panel-primary);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.pane-header {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+}
+
+.client-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.5rem;
+  padding: 0.5rem;
+  overflow-y: auto;
+}
+
+.client-tile {
+  background: #000;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  height: 120px;
+}
+.client-tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.client-tile-tag {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  background: rgba(0,0,0,0.6);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-primary);
+}
+
+.pip-preview-container {
+  height: 180px;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  background: #000;
+}
+.pip-preview-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.chat-bubble {
+  background: var(--panel-secondary);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.chat-bubble .meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+.chat-form {
+  padding: 0.75rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.bottom-control-bar {
+  height: 64px;
+  background: var(--panel-secondary);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+}

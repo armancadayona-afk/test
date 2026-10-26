@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>On-Tour Studio | Admin Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/webrtc-util.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-logo">ON-TOUR <span>| Tour Studio</span></div>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <span id="activeRoomCodeLabel" style="color: var(--color-accent); font-weight: 700;">No Active Room</span>
+      <button class="btn-secondary" onclick="copyInviteLink()">Copy Invite Link</button>
+      <button class="btn-danger" onclick="logoutAdmin()">Logout</button>
+    </div>
+  </header>
+
+  <div class="studio-layout">
+    <div class="stage-area">
+      <div class="broadcast-viewport" id="viewportContainer">
+        <video id="broadcastVideoPreview" autoplay playsinline muted></video>
+        <video id="filePlaybackElement" style="display: none;" playsinline loop></video>
+        <div id="viewportStatusOverlay" style="position: absolute; color: var(--text-muted);">
+          Camera is stopped. Click Start Camera or select video file.
+        </div>
+      </div>
+
+      <div class="client-monitor-pane">
+        <div class="pane-header">
+          <span>Connected Client Feeds (<span id="clientCountLabel">0</span>)</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Live 2-Way WebRTC Monitor</span>
+        </div>
+        <div class="client-grid" id="clientVideoGrid"></div>
+      </div>
+
+      <div class="bottom-control-bar">
+        <div style="display: flex; gap: 0.5rem;">
+          <button id="toggleMicBtn" class="btn-secondary" onclick="toggleAdminMic()">Mute Mic</button>
+          <button id="toggleCamBtn" class="btn-secondary" onclick="toggleAdminCam()">Stop Cam</button>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="file" id="videoFileInput" accept="video/mp4,video/webm" style="display: none;" onchange="handleFileSelected(event)">
+          <button class="btn-primary" onclick="document.getElementById('videoFileInput').click()">Select Tour Video</button>
+          <button id="returnWebcamBtn" class="btn-secondary" style="display: none;" onclick="returnToWebcam()">Return to Camera</button>
+          <button class="btn-secondary" onclick="toggleFullscreen()">Fullscreen</button>
+        </div>
+
+        <div>
+          <button class="btn-danger" onclick="endTourRoom()">End Tour Room</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-sidebar">
+      <div class="pip-preview-container">
+        <video id="adminSelfCam" autoplay playsinline muted></video>
+        <div style="position: absolute; bottom: 4px; left: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;">
+          Admin Monitor
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <div class="pane-header">Tour Chat</div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <form class="chat-form" onsubmit="sendChat(event)">
+          <input type="text" id="chatInput" placeholder="Message clients..." autocomplete="off" required>
+          <button type="submit" class="btn-primary">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+/**
+ * On-Tour Unified Theme
+ */
+:root {
+  --bg-deep: #06101E;
+  --panel-primary: #10243D;
+  --panel-secondary: #142B46;
+  --border-color: #294662;
+  --color-primary: #1464D9;
+  --color-primary-hover: #0F52B4;
+  --color-accent: #D4AF37;
+  --color-success: #36DF9D;
+  --color-danger: #D82831;
+  --color-danger-hover: #B51D25;
+  --text-main: #EDF5FF;
+  --text-muted: #9EB3D0;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  transition: background 0.2s, transform 0.1s;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-accent {
+  background: var(--color-accent);
+  color: #06101E;
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: #fff;
+}
+.btn-danger:hover {
+  background: var(--color-danger-hover);
+}
+
+.btn-secondary {
+  background: var(--panel-secondary);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+input[type="text"], input[type="password"] {
+  background: #0B1728;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 0.65rem 0.9rem;
+  border-radius: 6px;
+  outline: none;
+}
+input[type="text"]:focus, input[type="password"]:focus {
+  border-color: var(--color-primary);
+}
+
+/* Header */
+.app-header {
+  height: 60px;
+  background: var(--panel-primary);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+}
+.app-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+}
+.app-logo span {
+  color: var(--color-accent);
+}

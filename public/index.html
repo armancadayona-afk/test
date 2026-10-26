@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>On-Tour — Apartment Tour Presentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/home.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-logo">ON-TOUR <span>| Apartment Tours</span></div>
+  </header>
+
+  <main class="hero-container">
+    <div class="hero-card">
+      <h1>Experience Homes Live</h1>
+      <p>Interactive real-time virtual walkthroughs with two-way audio & video broadcast.</p>
+
+      <div class="action-tabs">
+        <button id="tabClientBtn" class="tab-btn active" onclick="switchTab('client')">Join Live Tour</button>
+        <button id="tabAdminBtn" class="tab-btn" onclick="switchTab('admin')">Admin Studio</button>
+      </div>
+
+      <div id="alertBox" class="alert-box"></div>
+
+      <!-- Client Join Form -->
+      <form id="clientJoinForm" onsubmit="handleClientJoin(event)">
+        <div class="form-group">
+          <label for="clientName">Your Display Name</label>
+          <input type="text" id="clientName" placeholder="e.g. Sarah Jenkins" required>
+        </div>
+        <div class="form-group">
+          <label for="roomCode">Tour Room Code</label>
+          <input type="text" id="roomCode" placeholder="e.g. 4F2A8B1C" style="text-transform: uppercase;" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width: 100%;">Enter Presentation</button>
+      </form>
+
+      <!-- Admin Login Form -->
+      <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" style="display: none;">
+        <div class="form-group">
+          <label for="adminPassword">Admin Password</label>
+          <input type="password" id="adminPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-accent" style="width: 100%;">Authorize Studio</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    function switchTab(type) {
+      document.getElementById('alertBox').style.display = 'none';
+      if (type === 'client') {
+        document.getElementById('tabClientBtn').classList.add('active');
+        document.getElementById('tabAdminBtn').classList.remove('active');
+        document.getElementById('clientJoinForm').style.display = 'block';
+        document.getElementById('adminLoginForm').style.display = 'none';
+      } else {
+        document.getElementById('tabAdminBtn').classList.add('active');
+        document.getElementById('tabClientBtn').classList.remove('active');
+        document.getElementById('adminLoginForm').style.display = 'block';
+        document.getElementById('clientJoinForm').style.display = 'none';
+      }
+    }
+
+    function showAlert(msg) {
+      const box = document.getElementById('alertBox');
+      box.textContent = msg;
+      box.style.display = 'block';
+    }
+
+    function handleClientJoin(e) {
+      e.preventDefault();
+      const name = document.getElementById('clientName').value.trim();
+      const code = document.getElementById('roomCode').value.trim().toUpperCase();
+      if (!name || !code) return showAlert('Please fill out all fields.');
+      window.location.href = `/call.html?room=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
+    }
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const password = document.getElementById('adminPassword').value;
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.location.href = data.redirect;
+        } else {
+          showAlert(data.error || 'Authentication rejected');
+        }
+      } catch (err) {
+        showAlert('Network or server error during login.');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('room')) {
+        document.getElementById('roomCode').value = params.get('room').toUpperCase();
+      }
+    });
+  </script>
+</body>
+</html>

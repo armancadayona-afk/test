@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>On-Tour — Live Presentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/client.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/webrtc-util.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-logo">ON-TOUR <span>| Live Walkthrough</span></div>
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <span id="clientStatusBadge" style="font-size: 0.85rem; color: var(--color-success);">Connecting...</span>
+      <button class="btn-danger" onclick="leaveCall()">Leave Tour</button>
+    </div>
+  </header>
+
+  <div class="client-layout">
+    <div class="presentation-stage">
+      <div class="presentation-video-container">
+        <video id="adminPresentationFeed" autoplay playsinline></video>
+        <div id="presentationOverlay" style="position: absolute; color: var(--text-muted); font-size: 1.1rem; text-align: center;">
+          Connecting to live apartment tour presentation...
+        </div>
+      </div>
+    </div>
+
+    <div class="client-sidebar">
+      <div class="self-cam-box">
+        <video id="clientSelfPreview" autoplay playsinline muted></video>
+        <div style="position: absolute; bottom: 4px; left: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px;">
+          Your Camera (Visible to Admin)
+        </div>
+      </div>
+
+      <div style="padding: 0.75rem; display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-color); background: var(--panel-secondary);">
+        <button id="toggleMicBtn" class="btn-secondary" style="flex: 1;" onclick="toggleClientMic()">Mute Mic</button>
+        <button id="toggleCamBtn" class="btn-secondary" style="flex: 1;" onclick="toggleClientCam()">Stop Cam</button>
+      </div>
+
+      <div class="chat-container" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+        <div style="padding: 0.5rem 1rem; font-weight: 600; font-size: 0.85rem; border-bottom: 1px solid var(--border-color);">
+          Live Tour Chat
+        </div>
+        <div class="chat-messages" id="chatMessages" style="flex: 1; overflow-y: auto; padding: 1rem;"></div>
+        <form class="chat-form" onsubmit="sendClientChat(event)" style="padding: 0.75rem; display: flex; gap: 0.5rem; border-top: 1px solid var(--border-color);">
+          <input type="text" id="chatInput" placeholder="Ask guide a question..." autocomplete="off" required style="flex: 1;">
+          <button type="submit" class="btn-primary">Send</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/client.js"></script>
+</body>
+</html>
