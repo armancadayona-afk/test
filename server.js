@@ -14,6 +14,8 @@ const helmet = require('helmet');
 const { Server } = require('socket.io');
 
 const app = express();
+// Enable trust proxy so Express recognizes Render's HTTPS reverse proxy
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: false } // Same-origin enforcement

@@ -10,6 +10,10 @@
 <body>
   <header class="app-header">
     <div class="app-logo">ON-TOUR <span>| Apartment Tours</span></div>
+    <div style="display: flex; gap: 0.75rem;">
+      <button class="btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;" onclick="switchTab('client')">Join Tour</button>
+      <button class="btn-accent" style="font-size: 0.85rem; padding: 0.4rem 0.8rem;" onclick="switchTab('admin')">Admin Login</button>
+    </div>
   </header>
 
   <main class="hero-container">
@@ -102,6 +106,9 @@
       const params = new URLSearchParams(window.location.search);
       if (params.has('room')) {
         document.getElementById('roomCode').value = params.get('room').toUpperCase();
+      }
+      if (window.location.hash === '#admin' || params.has('admin')) {
+        switchTab('admin');
       }
     });
   </script>
