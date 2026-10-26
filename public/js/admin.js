@@ -17,7 +17,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const authData = await authRes.json();
   if (!authData.authenticated) {
     alert("Session invalid or expired. Please login.");
-    window.location.href = '/';
+    window.location.href = '/admin';
     return;
   }
 
@@ -267,5 +267,5 @@ async function endTourRoom() {
 
 async function logoutAdmin() {
   await fetch('/api/admin/logout', { method: 'POST' });
-  window.location.href = '/';
+  window.location.href = '/admin';
 }

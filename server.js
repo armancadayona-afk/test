@@ -14,37 +14,39 @@ const helmet = require('helmet');
 const { Server } = require('socket.io');
 
 const app = express();
-// Enable trust proxy so Express recognizes Render's HTTPS reverse proxy
+// CRITICAL FOR RENDER: trust reverse proxy so HTTPS is recognized for secure cookies
 app.set('trust proxy', 1);
+
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: false } // Same-origin enforcement
+  cors: { origin: false }
 });
 
 // Environment Configuration
 const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ChangeThisAdminPassword123!';
-const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+
+// Clean surrounding quotes and whitespace from ADMIN_PASSWORD if added in Render dashboard
+let rawAdminPassword = process.env.ADMIN_PASSWORD || 'ChangeThisAdminPassword123!';
+if ((rawAdminPassword.startsWith('"') && rawAdminPassword.endsWith('"')) ||
+    (rawAdminPassword.startsWith("'") && rawAdminPassword.endsWith("'"))) {
+  rawAdminPassword = rawAdminPassword.slice(1, -1);
+}
+const ADMIN_PASSWORD = rawAdminPassword.trim();
+const SESSION_SECRET = (process.env.SESSION_SECRET || 'on-tour-default-stable-secret-key-2026').trim();
 
 // In-Memory Room Management State
-// rooms[roomCode] = {
-//   adminSocketId: string|null,
-//   createdAt: number,
-//   participants: Map<socketId, { displayName: string, role: 'admin'|'client' }>,
-//   chatHistory: Array<{ sender: string, text: string, time: string, role: string }>
-// }
 const rooms = new Map();
 
-// Session Setup
+// Session Setup with secure: 'auto' so it works seamlessly over Render HTTPS and local HTTP
 const sessionMiddleware = session({
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: 'auto',
     sameSite: 'lax',
-    maxAge: 12 * 60 * 60 * 1000 // 12 Hours
+    maxAge: 24 * 60 * 60 * 1000 // 24 Hours
   }
 });
 
@@ -54,52 +56,81 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.socket.io"],
-      connectSrc: ["'self'", "wss:", "ws:"],
+      connectSrc: ["'self'", "wss:", "ws:", "https:", "http:"],
       mediaSrc: ["'self'", "blob:", "data:"],
       imgSrc: ["'self'", "data:", "blob:"],
       styleSrc: ["'self'", "'unsafe-inline'"]
     }
   }
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(sessionMiddleware);
+
+// Serve static assets from public
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Rate Limiting on Authentication Endpoint
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 20,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many login attempts. Please try again later.' }
+  message: { error: 'Too many login attempts. Please wait a few minutes and try again.' }
 });
 
-// REST Endpoints
+// --- REST Endpoints & Clean Page Routes (Per Spec Section 3) ---
+
+// Direct URL: /admin
+app.get('/admin', (req, res) => {
+  if (req.session && req.session.isAdmin) {
+    return res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+  }
+  // If not logged in, serve the dedicated admin login portal
+  return res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+});
+
+// Direct URL: /call
+app.get('/call', (req, res) => {
+  return res.sendFile(path.join(__dirname, 'public', 'call.html'));
+});
+
 app.post('/api/admin/login', loginLimiter, (req, res) => {
-  const { password } = req.body;
-  if (!password) {
+  const inputPassword = (req.body.password || '').trim();
+  if (!inputPassword) {
     return res.status(400).json({ error: 'Password is required' });
   }
 
-  const bufA = Buffer.from(password);
+  // Safe string comparison
+  const bufA = Buffer.from(inputPassword);
   const bufB = Buffer.from(ADMIN_PASSWORD);
   const matched = (bufA.length === bufB.length) && crypto.timingSafeEqual(bufA, bufB);
 
   if (matched) {
     req.session.isAdmin = true;
-    return res.json({ success: true, redirect: '/admin.html' });
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({ error: 'Session initialization error' });
+      }
+      return res.json({ success: true, redirect: '/admin' });
+    });
   } else {
     return res.status(401).json({ error: 'Invalid admin credentials' });
   }
 });
 
 app.post('/api/admin/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.clearCookie('connect.sid');
+  if (req.session) {
+    req.session.destroy(() => {
+      res.clearCookie('connect.sid');
+      res.json({ success: true, redirect: '/' });
+    });
+  } else {
     res.json({ success: true, redirect: '/' });
-  });
+  }
 });
 
 app.get('/api/admin/check-session', (req, res) => {
@@ -109,7 +140,7 @@ app.get('/api/admin/check-session', (req, res) => {
   return res.json({ authenticated: false });
 });
 
-// Provide standard public STUN/TURN configurations securely
+// Provide standard public STUN/TURN configurations
 app.get('/api/ice-servers', (req, res) => {
   const iceServers = [
     { urls: 'stun:stun.l.google.com:19302' },
@@ -118,9 +149,9 @@ app.get('/api/ice-servers', (req, res) => {
 
   if (process.env.TURN_URL && process.env.TURN_USERNAME && process.env.TURN_CREDENTIAL) {
     iceServers.push({
-      urls: process.env.TURN_URL,
-      username: process.env.TURN_USERNAME,
-      credential: process.env.TURN_CREDENTIAL
+      urls: process.env.TURN_URL.trim(),
+      username: process.env.TURN_USERNAME.trim(),
+      credential: process.env.TURN_CREDENTIAL.trim()
     });
   }
 
@@ -132,7 +163,7 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, {}, next);
 });
 
-// Socket.IO Room & WebRTC Signaling
+// --- Socket.IO Room & WebRTC Signaling ---
 io.on('connection', (socket) => {
   let currentRoom = null;
   let userRole = null;
@@ -218,7 +249,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  // 3. WebRTC Signaling Dispatch (Strict Isolation within Room)
+  // 3. WebRTC Signaling Dispatch
   socket.on('webrtc-offer', ({ targetSocketId, sdp }) => {
     if (!currentRoom || !rooms.has(currentRoom)) return;
     const room = rooms.get(currentRoom);
@@ -319,5 +350,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`[ON-TOUR] HTTP & Signaling Server listening on http://0.0.0.0:${PORT}`);
+  console.log(`[ON-TOUR] Server listening on http://0.0.0.0:${PORT}`);
 });
